@@ -22,8 +22,8 @@ The app is expecting certain filename convention: unique name per datastream, pl
 
 - **Audio**: `.wav`, `.flac`
 
-### Example
-
+> #### Example
+>
 > We record two puppies having a playdate (let's say, later, we want to know which puppy barked the most). We have one audio recorder and two video cameras. Audio recorder works from the beginning to the end of the playdate. Video cameras write files in 30 minute chunks. We turn the recording devices on one one by one.
 >
 > To be good to use with `Spike-and-Seek`, the filenames should look as follows:
@@ -106,7 +106,7 @@ file-local time. You can press **Go to VLC** to inspect the videofile immediatel
 
 ## More info
 
-For tecnhical details of the script, check the Script architecture document.
+For tecnhical details of the script, check the [Script architecture](https://github.com/Kaetry/Spike-and-Seek/blob/main/Script%20architecture.md) document.
 
 ## Contact
 
