@@ -9,7 +9,7 @@ This app is meant for finding the same events on different datastreams assuming 
 - establishing the possible reasons for elevated heart rate of an animal by checking the data from audio recorder for loud foreign noises *(Not available yet)*
 - etc.
 
-Originally, the app was developed for a specific project focused on investigating of correlation between vocal behaviour and breathing of individually marked animals housed as a group.
+Originally, the app was developed for a PhD project (Radboud University / Max Planck Institute for Psycholinguistics) investigating the correlation between vocal behaviour and breathing of individually marked animals housed as a group.
 
 ## Before you start 
 
