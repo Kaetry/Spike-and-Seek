@@ -105,10 +105,6 @@ For an audio `target`, the result is in seconds from the start of the `target` d
 For a video `target`, the app displays the `target` filename and
 file-local time. You can press **Go to VLC** to inspect the video file immediately; playback starts two seconds before the event (so you have time to focus), or at the beginning of the file if the event is within its first two seconds.
 
-## More info
-
-For technical details of the script, check the [Script architecture](https://github.com/Kaetry/Spike-and-Seek/blob/main/Script%20architecture.md) document.
-
 ## Contact
 
 To report errors and ask for new features: goncharova.maria.v@gmail.com
