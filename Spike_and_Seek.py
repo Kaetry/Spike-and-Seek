@@ -8,7 +8,10 @@ user-selected session directory.
 from __future__ import annotations
 
 import math
+import os
 import re
+import subprocess
+import sys
 import tkinter as tk
 import wave
 from dataclasses import dataclass
@@ -76,7 +79,6 @@ GUI_GRID: dict[str, dict[str, int]] = {
         "input_timestamp_label": (6, 0, 2),
         "input_timestamp_field": (7, 0, 1),
         "input_timestamp_button": (7, 1, 1),
-        "input_timestamp_clear": (8, 1, 1),
         "input_timestamp_error": (9, 0, 2),
         "result_label": (9, 0, 2),
         "result_field_default": (10, 0, 2),
@@ -87,6 +89,14 @@ GUI_GRID: dict[str, dict[str, int]] = {
         "open_vlc_button": (12, 1, 1),
     }.items()
 }
+
+
+# Shared button style and grid options: every button fills its grid cell and uses
+# the same inner padding, font and outer spacing. The VLC toggle is a tk.Button
+# because themed ttk buttons on Windows cannot be recoloured.
+BUTTON_PADDING = (10, 5)
+BUTTON_FONT = ("Helvetica", 10)
+BUTTON_GRID: dict[str, Any] = {"sticky": "ew", "padx": 8, "pady": 5}
 
 
 _MEDIA_FILE_CACHE: dict[Path, list[Path]] = {}
@@ -917,7 +927,7 @@ class SpikeAndSeek:
         self.vlc_playback_button: tk.Button | None = None
         self.vlc_scale_frame: ttk.Frame | None = None
         self.vlc_scale_entry: ttk.Entry | None = None
-        self.directory_report: ttk.Label | None = None
+        self.directory_report: ttk.Entry | None = None
         self.status_label: ttk.Label | None = None
         self.detail_frame: ttk.LabelFrame | None = None
         self.sync_load_warning: str | None = None
@@ -936,6 +946,9 @@ class SpikeAndSeek:
     def _build_window(self) -> None:
         self.root.title("\U0001F440 Spike-and-Seek")
         self.root.geometry("450x600+1+1")
+        ttk.Style(self.root).configure(
+            "TButton", padding=BUTTON_PADDING, font=BUTTON_FONT
+        )
         self.root.grid_columnconfigure(0, weight=1)
         self.root.grid_columnconfigure(1, weight=3)
         self.root.bind("<Escape>", self.reset_selection)
@@ -947,12 +960,11 @@ class SpikeAndSeek:
             font=("Helvetica", 11, "bold"),
             pady=5,
         ).grid(**self._cell("data_dir_label"))
-        tk.Button(
+        ttk.Button(
             self.root,
             text="Browse",
             command=self.browse_data_directory,
-            pady=5,
-        ).grid(**self._cell("data_dir_button"))
+        ).grid(**self._cell("data_dir_button"), **BUTTON_GRID)
 
     def _calculation_status(self, directory: Path) -> str:
         durations_exist = (directory / VIDEO_DURATIONS_FILENAME).is_file()
@@ -1064,26 +1076,29 @@ class SpikeAndSeek:
         window.grid_rowconfigure(4, weight=1)
 
         action_frame = ttk.Frame(window)
-        action_frame.grid(row=5, column=0, sticky="w", padx=12, pady=5)
+        action_frame.grid(row=5, column=0, sticky="ew", padx=12, pady=5)
+        action_frame.grid_columnconfigure((0, 1), weight=1, uniform="actions")
         self.sync_extract_button = ttk.Button(
             action_frame,
             text="Generate selected WAVs",
             command=self.generate_missing_wavs,
         )
-        self.sync_extract_button.grid(row=0, column=0, sticky="w", padx=(0, 8))
+        self.sync_extract_button.grid(
+            row=0, column=0, sticky="ew", padx=(0, 4)
+        )
 
         self.sync_skip_button = ttk.Button(
             action_frame,
             text="Skip WAV generation",
             command=self.skip_missing_wav_generation,
         )
-        self.sync_skip_button.grid(row=0, column=1, sticky="w")
+        self.sync_skip_button.grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
         ttk.Button(
             window,
             text="Choose TextGrid annotation",
             command=self.choose_sync_textgrid,
-        ).grid(row=6, column=0, sticky="w", padx=12, pady=5)
+        ).grid(row=6, column=0, sticky="ew", padx=12, pady=5)
         self.sync_textgrid_report = ttk.Label(
             window, text="No TextGrid selected", wraplength=520
         )
@@ -1096,7 +1111,7 @@ class SpikeAndSeek:
             command=self.synchronize_datastreams,
             state=tk.DISABLED,
         )
-        self.sync_run_button.grid(row=8, column=0, sticky="ew", padx=12, pady=12)
+        self.sync_run_button.grid(row=8, column=0, sticky="ew", padx=12, pady=5)
 
         self._refresh_sync_creation_window()
         window.grab_set()
@@ -1517,16 +1532,19 @@ class SpikeAndSeek:
             input_frame.grid_columnconfigure(0, weight=1)
 
         self.timestamp_entry.bind("<Return>", self._calculate_timestamp)
+        button_frame = ttk.Frame(self.root)
+        button_frame.grid(**self._cell("input_timestamp_button"), **BUTTON_GRID)
+        button_frame.grid_columnconfigure((0, 1), weight=1, uniform="actions")
         ttk.Button(
-            self.root,
+            button_frame,
             text="Calculate",
             command=self._calculate_timestamp,
-        ).grid(**self._cell("input_timestamp_button"), pady=6)
+        ).grid(row=0, column=0, sticky="ew", padx=(0, 4))
         ttk.Button(
-            self.root,
+            button_frame,
             text="Clear",
             command=self._clear_timestamp_values,
-        ).grid(**self._cell("input_timestamp_clear"), pady=4)
+        ).grid(row=0, column=1, sticky="ew", padx=(4, 0))
 
     def _bind_clipboard_shortcuts(self, entry: ttk.Entry) -> None:
         entry.bind(
@@ -1645,9 +1663,14 @@ class SpikeAndSeek:
         self.vlc_playback_button = tk.Button(
             self.root,
             command=self._toggle_vlc_playback,
+            font=BUTTON_FONT,
+            padx=BUTTON_PADDING[0],
+            pady=BUTTON_PADDING[1],
+            foreground="white",
+            activeforeground="white",
         )
         self._set_vlc_playback_button_state(playing=False)
-        self.vlc_playback_button.grid(**cell, sticky="ew", padx=8, pady=5)
+        self.vlc_playback_button.grid(**cell, **BUTTON_GRID)
         ttk.Label(
             self.root,
             text="Playback will start 2 sec before the event",
@@ -1665,9 +1688,7 @@ class SpikeAndSeek:
             self.root,
             text="Change VLC window scale",
             command=self._toggle_vlc_scale_editor,
-        ).grid(
-            row=cell["row"], column=scale_column, sticky="ew", padx=8, pady=5
-        )
+        ).grid(row=cell["row"], column=scale_column, **BUTTON_GRID)
 
     def _set_vlc_playback_button_state(self, *, playing: bool) -> None:
         if self.vlc_playback_button is None:
@@ -1676,17 +1697,13 @@ class SpikeAndSeek:
             self.vlc_playback_button.configure(
                 text="Hide VLC",
                 background="#ef6c00",
-                foreground="white",
                 activebackground="#e65100",
-                activeforeground="white",
             )
         else:
             self.vlc_playback_button.configure(
                 text="Go to VLC",
                 background="#2e7d32",
-                foreground="white",
                 activebackground="#1b5e20",
-                activeforeground="white",
             )
 
     def _toggle_vlc_scale_editor(self) -> None:
@@ -1813,19 +1830,24 @@ class SpikeAndSeek:
             print(f"VLC cleanup warning: {error}")
 
     def _launch_vlc(self, video_path: Path, target_time: float) -> None:
+        try:
+            import vlc
+        except (ImportError, OSError, NotImplementedError) as error:
+            messagebox.showwarning(
+                "VLC not installed",
+                "VLC media player (or its Python bindings) was not found, so "
+                "the video cannot be opened.\n\n"
+                "Install VLC from https://www.videolan.org/vlc/ and the "
+                "python-vlc package, then try again.\n\n"
+                f"Details: {error}",
+                parent=self.root,
+            )
+            return
+
         if not video_path.is_file():
             messagebox.showerror(
                 "Video file not found",
                 f"The calculated video file no longer exists:\n{video_path}",
-                parent=self.root,
-            )
-            return
-        try:
-            import vlc
-        except (ImportError, OSError) as error:
-            messagebox.showerror(
-                "VLC unavailable",
-                f"Could not load the Python VLC bindings or VLC library: {error}",
                 parent=self.root,
             )
             return
@@ -2010,6 +2032,23 @@ class SpikeAndSeek:
             for widget in self.detail_frame.winfo_children():
                 widget.destroy()
 
+    def _open_data_directory(self) -> None:
+        if self.data_directory is None:
+            return
+        try:
+            if sys.platform.startswith("win"):
+                os.startfile(self.data_directory)
+            elif sys.platform == "darwin":
+                subprocess.Popen(["open", str(self.data_directory)])
+            else:
+                subprocess.Popen(["xdg-open", str(self.data_directory)])
+        except OSError as error:
+            messagebox.showerror(
+                "Cannot open directory",
+                f"Could not open the data directory:\n{error}",
+                parent=self.root,
+            )
+
     def _render_session_flow(self) -> None:
         self._clear_calculation_result("data_dir_subframe")
         self.directory_report = None
@@ -2030,11 +2069,17 @@ class SpikeAndSeek:
         ttk.Label(directory_frame, text="Data directory:").grid(
             row=0, column=0, sticky="w"
         )
-        self.directory_report = ttk.Label(
+        self.directory_report = ttk.Entry(directory_frame)
+        self.directory_report.insert(0, str(self.data_directory))
+        self.directory_report.configure(state="readonly")
+        self._bind_clipboard_shortcuts(self.directory_report)
+        self.directory_report.grid(row=0, column=1, sticky="ew", padx=(4, 0))
+        directory_frame.grid_columnconfigure(1, weight=1)
+        ttk.Button(
             directory_frame,
-            text=f"{self.data_directory}",
-        )
-        self.directory_report.grid(row=0, column=1, sticky="w")
+            text="Open in file explorer",
+            command=self._open_data_directory,
+        ).grid(row=0, column=2, padx=(8, 0))
 
         source_prompt_row = GUI_GRID["filename_label"]["row"]
         if not (self.data_directory / SYNC_VALUES_FILENAME).is_file():
@@ -2057,16 +2102,15 @@ class SpikeAndSeek:
                 sticky="w",
                 padx=8,
             )
-            tk.Button(
+            ttk.Button(
                 self.root,
                 text="Create Synchronization Table",
                 command=self.open_sync_creation_window,
-                pady=5,
             ).grid(
                 row=GUI_GRID["filename_subframe"]["row"],
                 column=0,
                 columnspan=2,
-                pady=6,
+                **BUTTON_GRID,
             )
             return
 
