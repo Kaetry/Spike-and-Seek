@@ -9,7 +9,7 @@ This app is meant for finding the same events on different datastreams assuming 
 - establishing the possible reasons for elevated heart rate of an animal by checking the data from audio recorder for loud foreign noises *(Not available yet)*
 - etc.
 
-Originally, the app was developed for a specific project focused on investigating of correlation between vocal behaviour and breathing of individually marked animals housed as a group.
+Originally, the app was developed for a PhD project (Radboud University / Max Planck Institute for Psycholinguistics) investigating the correlation between vocal behaviour and breathing of individually marked animals housed as a group.
 
 ## Before you start 
 
@@ -46,7 +46,7 @@ First, we need to synchronize the datastreams. For that, you will need to annota
 
 You need to do it once, then the app will generate a reference CSV table to look up any time you would like to continue working with this data bundle.
 
-0. [Download Praat](https://www.fon.hum.uva.nl/praat/)
+0. [Download Praat](https://www.fon.hum.uva.nl/praat/) and [VLC](https://www.videolan.org/).
 
 1. Launch `Spike-and-Seek` and choose the data directory.
 
@@ -104,10 +104,6 @@ For an audio `target`, the result is in seconds from the start of the `target` d
 
 For a video `target`, the app displays the `target` filename and
 file-local time. You can press **Go to VLC** to inspect the video file immediately; playback starts two seconds before the event (so you have time to focus), or at the beginning of the file if the event is within its first two seconds.
-
-## More info
-
-For technical details of the script, check the [Script architecture](https://github.com/Kaetry/Spike-and-Seek/blob/main/Script%20architecture.md) document.
 
 ## Contact
 
