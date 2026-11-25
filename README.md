@@ -46,7 +46,7 @@ First, we need to synchronize the datastreams. For that, you will need to annota
 
 You need to do it once, then the app will generate a reference CSV table to look up any time you would like to continue working with this data bundle.
 
-0. [Download Praat](https://www.fon.hum.uva.nl/praat/)
+0. [Download Praat](https://www.fon.hum.uva.nl/praat/) and [VLC](https://www.videolan.org/).
 
 1. Launch `Spike-and-Seek` and choose the data directory.
 
