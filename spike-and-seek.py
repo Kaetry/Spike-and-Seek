@@ -80,13 +80,14 @@ GUI_GRID: dict[str, dict[str, int]] = {
         "input_timestamp_field": (7, 0, 1),
         "input_timestamp_button": (7, 1, 1),
         "input_timestamp_error": (9, 0, 2),
-        "result_label": (9, 0, 2),
-        "result_field_default": (10, 0, 2),
-        "result_C_N_label": (10, 0, 1),
-        "result_C_N_field": (10, 1, 1),
-        "result_C_time_label": (11, 0, 1),
-        "result_C_time_field": (11, 1, 1),
-        "open_vlc_button": (12, 1, 1),
+        "vlc_controls": (9, 0, 2),
+        "open_vlc_button": (9, 1, 1),
+        "result_label": (12, 0, 2),
+        "result_field_default": (13, 0, 2),
+        "result_C_N_label": (13, 0, 1),
+        "result_C_N_field": (13, 1, 1),
+        "result_C_time_label": (14, 0, 1),
+        "result_C_time_field": (14, 1, 1),
     }.items()
 }
 
@@ -1587,7 +1588,9 @@ class SpikeAndSeek:
         event.widget.event_generate(virtual_event)
         return "break"
 
-    def _clear_calculation_result(self, first_element: str = "result_label") -> None:
+    def _clear_calculation_result(
+        self, first_element: str = "vlc_controls"
+    ) -> None:
         """Close VLC and destroy main-window widgets from this element's row down."""
         self._close_vlc_playback()
         self.vlc_target_video_path = None
